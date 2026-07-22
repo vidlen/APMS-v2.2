@@ -16,7 +16,7 @@ import MapView from "@/components/MapView";
 import DetailPanel from "@/components/DetailPanel";
 import Legend from "@/components/Legend";
 import SurveyYearSelector from "@/components/SurveyYearSelector";
-import CommandSearch from "@/components/CommandSearch";
+import SearchBar from "@/components/SearchBar";
 import StatsBar from "@/components/StatsBar";
 import NeedsAttention from "@/components/NeedsAttention";
 import SectionsTable from "@/components/SectionsTable";
@@ -319,7 +319,7 @@ export default function Home() {
             </div>
           </div>
 
-          <CommandSearch
+          <SearchBar
             sections={sections}
             onSelect={handleFeatureClick}
             selectedSection={selectedSection}
