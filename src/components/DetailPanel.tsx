@@ -1,4 +1,5 @@
-import { X, BarChart3, Layers, Info, Grid3x3, Pencil, AlertTriangle } from "lucide-react";
+import { X, BarChart3, Layers, Info, Grid3x3, Pencil, AlertTriangle, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { getPCICategory, pciCategories, type SectionData } from "@/lib/pci-utils";
 import {
   describePCNPart,
@@ -396,14 +397,21 @@ export default function DetailPanel({
           <p className="text-foreground text-base font-medium">{section.Type}</p>
         </section>
 
-        {/* PCI Scale Reference */}
-        <section className="py-5 border-t border-border">
-          <div className="flex items-center gap-2 mb-4">
+        {/* PCI Scale Reference — the least critical section (a static
+            legend, not this section's own data) and the tallest, so it
+            collapses independently of everything else. Defaults open;
+            purely a display affordance, doesn't change what's shown. */}
+        <Collapsible defaultOpen className="py-5 border-t border-border">
+          <CollapsibleTrigger className="group flex items-center gap-2 mb-4 w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
             <Info size={14} className="text-muted-foreground" />
-            <h3 className="panel-label">PCI Scale Reference</h3>
-          </div>
+            <h3 className="panel-label flex-1">PCI Scale Reference</h3>
+            <ChevronDown
+              size={14}
+              className="text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90"
+            />
+          </CollapsibleTrigger>
 
-          <div className="space-y-1.5">
+          <CollapsibleContent className="space-y-1.5">
             {pciCategories
               .slice()
               .reverse()
@@ -434,8 +442,8 @@ export default function DetailPanel({
                   </div>
                 );
               })}
-          </div>
-        </section>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
       {/* Footer */}

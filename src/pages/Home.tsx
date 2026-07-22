@@ -201,18 +201,18 @@ export default function Home() {
   // gets stuck near 0 instead of settling at the target (verified: the
   // identical transition works correctly with a plain px number, as the
   // showTable/isSampleUnitDetail branches below already do).
-  // Table view is sized to match a workspace tab's width (tabs are 3 equal
-  // flex-1 columns spanning the full app width, so one tab = viewportWidth
-  // / 3) — floored at 450, the minimum that fits all 5 columns (after
-  // tightening column padding/font-size in SectionsTable) without a
-  // horizontal scrollbar (verified natural width: 442px).
+  // Table view targets 42% of the viewport, capped at 560 so it never
+  // dominates a wide desktop window, and floored at 450 — the minimum
+  // that fits all 5 columns (after tightening column padding/font-size in
+  // SectionsTable) without a horizontal scrollbar (verified natural
+  // width: 442px).
   const sidebarWidth = isNarrow
     ? viewportWidth
     : showTable
-      ? Math.max(Math.round(viewportWidth / 3), 450)
+      ? Math.min(560, Math.max(450, Math.round(viewportWidth * 0.42)))
       : isSampleUnitDetail
-        ? 400
-        : 320;
+        ? 460
+        : 380;
   const showPciData = years.find((y) => y.id === selectedYear)?.hasData ?? false;
   const activeTabIndex = WORKSPACE_TABS.findIndex((tab) => tab.id === activeTab);
   // The floating aside sits `right-3` (12px) off the viewport edge; the

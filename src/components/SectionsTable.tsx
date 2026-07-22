@@ -88,7 +88,10 @@ export default function SectionsTable({
 
   return (
     <div className="flex flex-col">
-      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 space-y-2.5">
+      {/* Sticky filter header — translucent + blurred like the sheet
+          itself (not a solid bg-card slab) so it reads as part of the
+          same glass surface while rows scroll behind it. */}
+      <div className="sticky top-0 z-10 backdrop-blur-md bg-white/85 dark:bg-[hsl(220_13%_9%/0.85)] border-b border-border px-4 py-3 space-y-2.5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-foreground">
             All Sections{" "}
