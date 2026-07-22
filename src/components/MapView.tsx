@@ -116,7 +116,7 @@ export default function MapView({
         }),
         text: new Text({
           text: String(props["sampleUnit"] ?? ""),
-          font: '600 10px "Fira Sans", system-ui, sans-serif',
+          font: '600 10px "Geist", system-ui, sans-serif',
           fill: new Fill({ color: "#111" }),
           stroke: new Stroke({ color: "rgba(255,255,255,0.85)", width: 2 }),
           overflow: false,
@@ -235,13 +235,15 @@ export default function MapView({
         tooltipEl.style.display = "block";
         if (props["sampleUnit"] !== undefined) {
           const pciValue = Number(props["pci_score"]);
-          const label = getPCICategory(pciValue).label;
-          tooltipEl.innerHTML = `<strong>Sample Unit <span class="font-mono">${props["sampleUnit"]}</span></strong> &middot; PCI: <span class="font-mono">${pciValue.toFixed(2)}</span> &middot; ${label}`;
+          const category = getPCICategory(pciValue);
+          const dot = `<span style="width:8px;height:8px;border-radius:9999px;flex-shrink:0;display:inline-block;background:${category.color};box-shadow:0 0 0 1px rgb(0 0 0 / 0.35)"></span>`;
+          tooltipEl.innerHTML = `${dot}<span><strong>Sample Unit <span class="font-mono">${props["sampleUnit"]}</span></strong> &middot; PCI: <span class="font-mono">${pciValue.toFixed(2)}</span> &middot; ${category.label}</span>`;
         } else {
           const sectionName = props["Section"];
           const pci = props["PCI Rating"];
-          const label = getPCICategory(parsePCIValue(pci)).label;
-          tooltipEl.innerHTML = `<strong class="font-mono">${sectionName}</strong> &middot; PCI: <span class="font-mono">${pci}</span> &middot; ${label}`;
+          const category = getPCICategory(parsePCIValue(pci));
+          const dot = `<span style="width:8px;height:8px;border-radius:9999px;flex-shrink:0;display:inline-block;background:${category.color};box-shadow:0 0 0 1px rgb(0 0 0 / 0.35)"></span>`;
+          tooltipEl.innerHTML = `${dot}<span><strong class="font-mono">${sectionName}</strong> &middot; PCI: <span class="font-mono">${pci}</span> &middot; ${category.label}</span>`;
         }
         const evt = e.originalEvent as PointerEvent;
         tooltipEl.style.left = evt.pageX + 12 + "px";
@@ -294,9 +296,15 @@ export default function MapView({
     const geometry = feature?.getGeometry();
     if (!geometry) return;
 
+    // The floating sidebar covers roughly the right 380-460px of the map on
+    // wide viewports (see Home.tsx's sidebarWidth) — pad the fit so a newly
+    // selected section always lands in the visible strip beside it instead
+    // of underneath the panel. Narrow viewports show the sidebar as a
+    // bottom drawer instead, so the map itself stays unobstructed there.
+    const isNarrow = typeof window !== "undefined" && window.innerWidth < 640;
     map.getView().fit(geometry.getExtent(), {
       duration: 500,
-      padding: [60, 60, 60, 60],
+      padding: isNarrow ? [60, 60, 60, 60] : [80, 380, 80, 80],
       maxZoom: 15,
     });
   }, [selectedSection]);
@@ -350,7 +358,7 @@ export default function MapView({
       {detailedSection && (
         <button
           onClick={onExitDetails}
-          className="panel-surface absolute top-24 left-3 z-30 flex items-center gap-2 hover:border-primary/40 text-foreground text-xs font-medium px-3 py-2 rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="glass-panel absolute top-24 left-3 z-30 flex items-center gap-2 hover:border-primary/40 text-foreground text-xs font-medium px-4 py-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <span aria-hidden>←</span>
           <span>Back to overview · {detailedSection}</span>
@@ -358,9 +366,11 @@ export default function MapView({
       )}
       {/* Persistent condition-filter indicator — survives the sidebar
           swapping to the detail panel or table, where the legend that
-          set this filter is no longer on screen. */}
+          set this filter is no longer on screen. Centered below the top
+          bar rather than pinned to top-right, which used to land directly
+          under the bar's own right-side controls (year/theme/admin). */}
       {activeBands.size > 0 && (
-        <div className="panel-surface absolute top-3 right-3 z-30 flex items-center gap-2 px-3 py-2 rounded-md max-w-[260px]">
+        <div className="glass-panel absolute top-20 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-full max-w-[calc(100vw-24px)]">
           <span className="text-[11px] text-muted-foreground shrink-0">Filtered:</span>
           <div className="flex items-center gap-1 flex-wrap min-w-0">
             {[...activeBands].map((label) => (

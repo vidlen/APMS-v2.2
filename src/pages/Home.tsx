@@ -165,7 +165,10 @@ export default function Home() {
       <div className="w-full h-screen h-dvh bg-background flex items-center justify-center px-6">
         <div className="flex flex-col items-center gap-10">
           <div className="flex flex-col items-center gap-7">
-            <div className="flex items-center gap-8">
+            <div
+              className="flex items-center gap-8 animate-card-in"
+              style={{ animationDelay: "0ms" }}
+            >
               <img
                 src="/branding/ugm-logo.png"
                 alt="Universitas Gadjah Mada"
@@ -180,11 +183,16 @@ export default function Home() {
             <img
               src="/branding/soekarno-hatta-wordmark.png"
               alt="Soekarno-Hatta International Airport, by InJourney Airports"
-              className="h-20 w-auto object-contain"
+              className="h-20 w-auto object-contain animate-card-in"
+              style={{ animationDelay: "150ms" }}
             />
           </div>
 
-          <div className="w-12 h-12 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          {/* Indeterminate progress bar — a moving segment rather than a
+              spinner, since there's no real completion fraction to show. */}
+          <div className="w-40 h-1 rounded-full bg-secondary overflow-hidden animate-card-in" style={{ animationDelay: "300ms" }}>
+            <div className="w-1/3 h-full rounded-full bg-primary animate-indeterminate" />
+          </div>
         </div>
       </div>
     );
@@ -192,8 +200,8 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="w-full h-screen h-dvh bg-background flex items-center justify-center">
-        <div className="text-center space-y-3 max-w-md px-6">
+      <div className="w-full h-screen h-dvh bg-background flex items-center justify-center px-6">
+        <div className="glass-panel rounded-2xl text-center space-y-3 max-w-md px-8 py-8">
           <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
             <span className="text-destructive text-xl">!</span>
           </div>
@@ -407,7 +415,7 @@ export default function Home() {
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-background">
-              <div className="text-center space-y-3 max-w-sm px-6">
+              <div className="glass-panel rounded-2xl text-center space-y-3 max-w-sm px-8 py-8">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                   <Construction size={20} className="text-primary" />
                 </div>
@@ -511,7 +519,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-background">
-          <div className="text-center space-y-3 max-w-sm px-6">
+          <div className="glass-panel rounded-2xl text-center space-y-3 max-w-sm px-8 py-8">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
               <Construction size={20} className="text-primary" />
             </div>

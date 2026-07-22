@@ -145,22 +145,36 @@
   padding: 0 !important;
 }
 
+/* Glass to match the floating top bar / sidebar — same recipe as
+   .glass-panel, duplicated here in plain CSS since these are
+   OpenLayers-generated DOM nodes outside React, not Tailwind-classed JSX. */
 .ol-control button {
-  background: hsl(var(--card)) !important;
-  border: 1px solid hsl(var(--border)) !important;
+  background: rgb(255 255 255 / 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgb(0 0 0 / 0.1) !important;
   color: hsl(var(--foreground)) !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   width: 32px !important;
   height: 32px !important;
   font-size: 16px !important;
   margin: 2px !important;
   transition: all 0.15s ease !important;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.2) !important;
+}
+
+.dark .ol-control button {
+  background: hsl(220 13% 8% / 0.75) !important;
+  border-color: rgb(255 255 255 / 0.1) !important;
 }
 
 .ol-control button:hover {
-  background: hsl(var(--secondary)) !important;
+  background: rgb(255 255 255 / 0.97) !important;
   border-color: hsl(var(--primary) / 0.4) !important;
+}
+
+.dark .ol-control button:hover {
+  background: hsl(220 13% 8% / 0.92) !important;
 }
 
 /* 80px clears the floating top bar (12px inset + 56px bar height + 12px
@@ -173,8 +187,14 @@
 .ol-attribution {
   bottom: 8px !important;
   right: 8px !important;
-  background: hsl(var(--card) / 0.85) !important;
-  border-radius: 6px !important;
+  background: rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 8px !important;
+}
+
+.dark .ol-attribution {
+  background: hsl(220 13% 8% / 0.72) !important;
 }
 
 .ol-attribution button {
@@ -213,18 +233,29 @@
   cursor: pointer;
 }
 
-/* Tooltip style for map hover */
+/* Tooltip style for map hover — glass chip, matches the rest of the map
+   chrome; MapView.tsx prepends a band-color dot into this flex row. */
 .map-tooltip {
   position: absolute;
-  background: hsl(var(--card));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgb(255 255 255 / 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: hsl(var(--foreground));
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   pointer-events: none;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
-  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.25);
+  border: 1px solid rgb(0 0 0 / 0.1);
   white-space: nowrap;
+}
+
+.dark .map-tooltip {
+  background: hsl(220 13% 9% / 0.9);
+  border-color: rgb(255 255 255 / 0.1);
 }
