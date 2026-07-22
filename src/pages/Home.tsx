@@ -1,6 +1,17 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useLocation } from "react-router";
-import { Plane, ChevronLeft, ChevronRight, Construction } from "lucide-react";
+import {
+  Plane,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Construction,
+  Gauge,
+  TrendingUp,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
 import MapView from "@/components/MapView";
 import DetailPanel from "@/components/DetailPanel";
 import Legend from "@/components/Legend";
@@ -11,6 +22,7 @@ import NeedsAttention from "@/components/NeedsAttention";
 import SectionsTable from "@/components/SectionsTable";
 import AdminHeaderControl from "@/components/admin/AdminHeaderControl";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePavementData } from "@/hooks/usePavementData";
 import { countByCondition, type SectionData } from "@/lib/pci-utils";
 import type { SurveyYear } from "@/lib/survey-years";
@@ -25,19 +37,22 @@ const WORKSPACE_TABS: {
   id: WorkspaceTab;
   label: string;
   shortLabel: string;
+  icon: LucideIcon;
   placeholderCaption?: string;
 }[] = [
-  { id: "pci", label: "Pavement Condition Index (PCI)", shortLabel: "PCI" },
+  { id: "pci", label: "Pavement Condition Index (PCI)", shortLabel: "PCI", icon: Gauge },
   {
     id: "forecast",
     label: "PCI Forecasting",
     shortLabel: "Forecasting",
+    icon: TrendingUp,
     placeholderCaption: "This Feature Still Waiting for ATC Clearance to Take Off",
   },
   {
     id: "rehab",
     label: "Rehabilitation Plan",
     shortLabel: "Rehab Plan",
+    icon: Wrench,
     placeholderCaption: "This Feature Is Closed Due To WIP",
   },
 ];
@@ -217,12 +232,65 @@ export default function Home() {
   const activeTabIndex = WORKSPACE_TABS.findIndex((tab) => tab.id === activeTab);
   // The floating aside sits `right-3` (12px) off the viewport edge; the
   // collapse toggle tracks its left edge the same way the old docked layout
-  // tracked `right: sidebarWidth`, just offset by that inset. Narrow+open is
-  // special-cased to the left edge — with the aside spanning (near) the
-  // full width there, anchoring by `right: sidebarWidth` would push the
-  // toggle off-screen to the left.
+  // tracked `right: sidebarWidth`, just offset by that inset.
   const PANEL_INSET = 12;
-  const toggleAtLeftEdge = isNarrow && !sidebarCollapsed;
+
+  // Overview/Needs Attention/Legend as three independent glass cards, or a
+  // single glass sheet for the detail/table views — shared as-is between
+  // the desktop floating column and the narrow bottom drawer below.
+  const sidebarBody =
+    showTable && showPciData ? (
+      <div className="glass-panel rounded-xl overflow-y-auto custom-scrollbar flex-1 min-h-0">
+        <SectionsTable
+          sections={sections}
+          activeBands={activeBands}
+          onClearBands={handleClearBands}
+          selectedSection={selectedSection}
+          onSelect={handleFeatureClick}
+          onClose={() => setShowTable(false)}
+        />
+      </div>
+    ) : selectedSection && showPciData ? (
+      <div className="glass-panel rounded-xl overflow-hidden flex-1 min-h-0">
+        <DetailPanel
+          section={selectedSection}
+          selectedYear={selectedYear}
+          onClose={handleClosePanel}
+          onViewDetails={handleToggleDetails}
+          isDetailedView={detailedSection === selectedSection.Section}
+        />
+      </div>
+    ) : (
+      <>
+        {showPciData && (
+          <div
+            className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
+            style={{ animationDelay: "0ms" }}
+          >
+            <StatsBar sections={sections} onOpenTable={() => setShowTable(true)} />
+          </div>
+        )}
+        {showPciData && (
+          <div
+            className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
+            style={{ animationDelay: "60ms" }}
+          >
+            <NeedsAttention sections={sections} onSelect={handleFeatureClick} />
+          </div>
+        )}
+        <div
+          className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
+          style={{ animationDelay: "120ms" }}
+        >
+          <Legend
+            activeBands={activeBands}
+            onToggleBand={handleToggleBand}
+            onClearBands={handleClearBands}
+            bandCounts={bandCounts}
+          />
+        </div>
+      </>
+    );
 
   return (
     <div className="relative w-full h-screen h-dvh bg-background overflow-hidden">
@@ -262,7 +330,7 @@ export default function Home() {
         <div
           role="tablist"
           aria-label="Workspace"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[190px] sm:w-64 rounded-lg bg-secondary/70 p-1"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-64 rounded-lg bg-secondary/70 p-1"
         >
           <div className="relative grid grid-cols-3">
             <span
@@ -270,22 +338,29 @@ export default function Home() {
               className="absolute inset-y-0 w-1/3 rounded-md bg-background shadow-sm transition-transform duration-200 ease-out"
               style={{ transform: `translateX(${activeTabIndex * 100}%)` }}
             />
-            {WORKSPACE_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                role="tab"
-                title={tab.label}
-                aria-selected={activeTab === tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative z-10 px-1.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-md text-center truncate transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                  activeTab === tab.id
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab.shortLabel}
-              </button>
-            ))}
+            {WORKSPACE_TABS.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  title={tab.label}
+                  aria-selected={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative z-10 flex items-center justify-center gap-1.5 px-1.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    activeTab === tab.id
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {/* Icons below sm (top bar is tightest there), text label
+                      at sm+ — a pure CSS breakpoint, not tied to the isNarrow
+                      JS state, so it can't drift stale after a resize. */}
+                  <Icon size={14} className="sm:hidden shrink-0" />
+                  <span className="hidden sm:inline truncate">{tab.shortLabel}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -344,105 +419,95 @@ export default function Home() {
             </div>
           )}
 
-          {/* Sidebar collapse toggle */}
-          <button
-            onClick={() => setSidebarCollapsed((v) => !v)}
-            className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center w-6 h-12 bg-primary text-primary-foreground shadow-md hover:bg-primary/90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-primary ${
-              toggleAtLeftEdge ? "rounded-r-md" : "rounded-l-md"
-            }`}
-            style={
-              toggleAtLeftEdge
-                ? { left: PANEL_INSET }
-                : { right: sidebarCollapsed ? PANEL_INSET : sidebarWidth + PANEL_INSET }
-            }
-            title={sidebarCollapsed ? "Show panel" : "Hide panel"}
-            aria-label={sidebarCollapsed ? "Show panel" : "Hide panel"}
-          >
-            {sidebarCollapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-          </button>
-
-          {/* Floating sidebar. Collapse slides it off-screen via transform
-              (not width) — the old docked layout had to snap its width
-              instead of transitioning because animating flex-basis gets
-              stuck near 0; that constraint doesn't apply to an absolutely
-              positioned panel, so the slide can transition smoothly here.
-              The column itself is unstyled — it's a positioning shell only;
-              each state below carries its own glass treatment, since the
-              overview state renders three independent floating cards while
-              detail/table render as one sheet. */}
-          <aside
-            className="absolute top-20 bottom-3 z-20 transition-transform duration-300 ease-out"
-            style={{
-              right: PANEL_INSET,
-              left: isNarrow ? PANEL_INSET : undefined,
-              width: isNarrow ? undefined : sidebarWidth,
-              transform: sidebarCollapsed ? "translateX(calc(100% + 12px))" : "translateX(0)",
-            }}
-          >
-            <div className="h-full overflow-y-auto custom-scrollbar pb-[env(safe-area-inset-bottom)] flex flex-col gap-3">
-              {/* Narrow-viewport fallback for the year selector — rendered
-                  above the swappable panels below so it still survives
-                  section selection and the table view. */}
-              {isNarrow && (
-                <div className="glass-panel rounded-xl px-5 py-3 shrink-0">
-                  <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
-                </div>
+          {isNarrow ? (
+            <>
+              {/* Reopen affordance once the drawer is fully dismissed — the
+                  drawer itself unmounts at that point, so nothing else on
+                  screen offers a way back in. */}
+              {sidebarCollapsed && (
+                <button
+                  onClick={() => setSidebarCollapsed(false)}
+                  className="glass-panel absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <ChevronUp size={14} />
+                  Sections
+                </button>
               )}
 
-              {showTable && showPciData ? (
-                <div className="glass-panel rounded-xl overflow-y-auto custom-scrollbar flex-1 min-h-0">
-                  <SectionsTable
-                    sections={sections}
-                    activeBands={activeBands}
-                    onClearBands={handleClearBands}
-                    selectedSection={selectedSection}
-                    onSelect={handleFeatureClick}
-                    onClose={() => setShowTable(false)}
-                  />
-                </div>
-              ) : selectedSection && showPciData ? (
-                <div className="glass-panel rounded-xl overflow-hidden flex-1 min-h-0">
-                  <DetailPanel
-                    section={selectedSection}
-                    selectedYear={selectedYear}
-                    onClose={handleClosePanel}
-                    onViewDetails={handleToggleDetails}
-                    isDetailedView={detailedSection === selectedSection.Section}
-                  />
-                </div>
-              ) : (
-                <>
-                  {showPciData && (
-                    <div
-                      className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
-                      style={{ animationDelay: "0ms" }}
-                    >
-                      <StatsBar sections={sections} onOpenTable={() => setShowTable(true)} />
+              {/* Non-modal: no dark scrim, so the map stays visible and
+                  interactive above the sheet at its 45% peek — this is a
+                  persistent panel with two resting heights, not a one-shot
+                  takeover dialog. */}
+              <Drawer
+                open={!sidebarCollapsed}
+                onOpenChange={(open) => setSidebarCollapsed(!open)}
+                snapPoints={[0.45, 0.92]}
+                modal={false}
+              >
+                <DrawerContent showOverlay={false} className="rounded-t-xl">
+                  <DrawerHeader className="sr-only">
+                    <DrawerTitle>Section panel</DrawerTitle>
+                    <DrawerDescription>
+                      PCI overview, needs attention, legend, and section details for the
+                      selected survey year
+                    </DrawerDescription>
+                  </DrawerHeader>
+
+                  <div className="flex items-center gap-2 px-4 pb-2 shrink-0">
+                    <div className="flex-1">
+                      <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
                     </div>
-                  )}
-                  {showPciData && (
-                    <div
-                      className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
-                      style={{ animationDelay: "60ms" }}
+                    <button
+                      onClick={() => setSidebarCollapsed(true)}
+                      aria-label="Hide panel"
+                      title="Hide panel"
+                      className="w-8 h-8 rounded-md bg-secondary hover:bg-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      <NeedsAttention sections={sections} onSelect={handleFeatureClick} />
-                    </div>
-                  )}
-                  <div
-                    className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
-                    style={{ animationDelay: "120ms" }}
-                  >
-                    <Legend
-                      activeBands={activeBands}
-                      onToggleBand={handleToggleBand}
-                      onClearBands={handleClearBands}
-                      bandCounts={bandCounts}
-                    />
+                      <ChevronDown size={14} />
+                    </button>
                   </div>
-                </>
-              )}
-            </div>
-          </aside>
+
+                  <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-[env(safe-area-inset-bottom)] flex flex-col gap-3">
+                    {sidebarBody}
+                  </div>
+                </DrawerContent>
+              </Drawer>
+            </>
+          ) : (
+            <>
+              {/* Sidebar collapse toggle */}
+              <button
+                onClick={() => setSidebarCollapsed((v) => !v)}
+                className="absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center w-6 h-12 rounded-l-md bg-primary text-primary-foreground shadow-md hover:bg-primary/90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-primary"
+                style={{ right: sidebarCollapsed ? PANEL_INSET : sidebarWidth + PANEL_INSET }}
+                title={sidebarCollapsed ? "Show panel" : "Hide panel"}
+                aria-label={sidebarCollapsed ? "Show panel" : "Hide panel"}
+              >
+                {sidebarCollapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+              </button>
+
+              {/* Floating sidebar. Collapse slides it off-screen via transform
+                  (not width) — the old docked layout had to snap its width
+                  instead of transitioning because animating flex-basis gets
+                  stuck near 0; that constraint doesn't apply to an absolutely
+                  positioned panel, so the slide can transition smoothly here.
+                  The column itself is unstyled — it's a positioning shell
+                  only; each state below carries its own glass treatment,
+                  since the overview state renders three independent floating
+                  cards while detail/table render as one sheet. */}
+              <aside
+                className="absolute top-20 bottom-3 right-3 z-20 transition-transform duration-300 ease-out"
+                style={{
+                  width: sidebarWidth,
+                  transform: sidebarCollapsed ? "translateX(calc(100% + 12px))" : "translateX(0)",
+                }}
+              >
+                <div className="h-full overflow-y-auto custom-scrollbar pb-[env(safe-area-inset-bottom)] flex flex-col gap-3">
+                  {sidebarBody}
+                </div>
+              </aside>
+            </>
+          )}
         </div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-background">

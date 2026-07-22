@@ -45,10 +45,13 @@ export default function CommandSearch({ sections, onSelect, selectedSection }: C
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2.5 bg-secondary border border-border rounded-md h-9 px-3.5 w-full max-w-[180px] sm:max-w-xs text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        aria-label="Search branch"
+        className="flex items-center gap-2.5 bg-secondary border border-border rounded-md h-9 px-3 sm:px-3.5 sm:w-full sm:max-w-[180px] md:max-w-xs text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <Search size={15} className="text-muted-foreground shrink-0" />
-        <span className="text-muted-foreground text-sm truncate flex-1">Search Branch</span>
+        <span className="hidden sm:inline text-muted-foreground text-sm truncate flex-1">
+          Search Branch
+        </span>
         <KbdGroup className="hidden sm:inline-flex shrink-0">
           <Kbd>⌘</Kbd>
           <Kbd>K</Kbd>
