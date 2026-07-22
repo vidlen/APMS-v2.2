@@ -99,6 +99,24 @@
     @apply bg-card border border-border shadow-sm;
   }
 
+  /* Floating chrome over the map: translucent glass with an inner top
+     highlight for edge refraction. Opacity stays >=0.72 so text over it
+     stays readable against any satellite imagery underneath — verified
+     against the brightest (concrete apron) and darkest (grass) regions. */
+  .glass-panel {
+    @apply backdrop-blur-md border bg-white/80 border-black/10;
+    box-shadow:
+      0 10px 30px -10px rgb(0 0 0 / 0.15),
+      inset 0 1px 0 rgb(255 255 255 / 0.4);
+  }
+  .dark .glass-panel {
+    @apply border-white/10;
+    background-color: hsl(220 13% 8% / 0.72);
+    box-shadow:
+      0 10px 30px -10px rgb(0 0 0 / 0.4),
+      inset 0 1px 0 rgb(255 255 255 / 0.05);
+  }
+
   /* Guaranteed edge definition for a PCI ramp swatch, independent of which
      of the 7 fixed band colors is used. #b40000 (Serious) measures ~2.4:1
      against the chrome — a single mid-tone border can't separate both that

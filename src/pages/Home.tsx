@@ -21,16 +21,23 @@ const MIN_LOADING_SCREEN_MS = 2000;
 
 type WorkspaceTab = "pci" | "forecast" | "rehab";
 
-const WORKSPACE_TABS: { id: WorkspaceTab; label: string; placeholderCaption?: string }[] = [
-  { id: "pci", label: "Pavement Condition Index (PCI)" },
+const WORKSPACE_TABS: {
+  id: WorkspaceTab;
+  label: string;
+  shortLabel: string;
+  placeholderCaption?: string;
+}[] = [
+  { id: "pci", label: "Pavement Condition Index (PCI)", shortLabel: "PCI" },
   {
     id: "forecast",
     label: "PCI Forecasting",
+    shortLabel: "Forecasting",
     placeholderCaption: "This Feature Still Waiting for ATC Clearance to Take Off",
   },
   {
     id: "rehab",
     label: "Rehabilitation Plan",
+    shortLabel: "Rehab Plan",
     placeholderCaption: "This Feature Is Closed Due To WIP",
   },
 ];
@@ -207,37 +214,78 @@ export default function Home() {
         ? 400
         : 320;
   const showPciData = years.find((y) => y.id === selectedYear)?.hasData ?? false;
-  // On narrow viewports the sidebar spans the full viewport width, so
-  // anchoring the toggle with `right: sidebarWidth` would push it off the
-  // left edge of the screen entirely — dock it to the left edge instead.
+  const activeTabIndex = WORKSPACE_TABS.findIndex((tab) => tab.id === activeTab);
+  // The floating aside sits `right-3` (12px) off the viewport edge; the
+  // collapse toggle tracks its left edge the same way the old docked layout
+  // tracked `right: sidebarWidth`, just offset by that inset. Narrow+open is
+  // special-cased to the left edge — with the aside spanning (near) the
+  // full width there, anchoring by `right: sidebarWidth` would push the
+  // toggle off-screen to the left.
+  const PANEL_INSET = 12;
   const toggleAtLeftEdge = isNarrow && !sidebarCollapsed;
 
   return (
-    <div className="flex flex-col w-full h-screen h-dvh bg-background overflow-hidden">
-      {/* Header */}
-      <header className="shrink-0 flex items-center justify-between gap-4 min-h-16 px-4 pt-[env(safe-area-inset-top)] bg-card border-b border-border shadow-sm z-30">
-        <div className="flex items-center gap-3 min-w-0">
+    <div className="relative w-full h-screen h-dvh bg-background overflow-hidden">
+      {/* Floating top bar — brand, workspace switch, and global controls in
+          one glass bar over the map instead of a stacked header + tab row. */}
+      <header className="glass-panel absolute top-3 left-3 right-3 z-30 flex items-center gap-3 h-14 rounded-xl px-3 pt-[env(safe-area-inset-top)]">
+        <div
+          className="flex items-center gap-2.5 shrink-0"
+          title="Airport Pavement Management System — Soekarno-Hatta International Airport"
+        >
           <div className="w-9 h-9 rounded-md bg-primary flex items-center justify-center shrink-0">
             <Plane size={17} className="text-primary-foreground" />
           </div>
-          <div className={`leading-tight ${isNarrow ? "min-w-0" : "shrink-0"}`}>
-            <h1 className="text-foreground text-sm font-bold leading-tight truncate">
-              Airport Pavement Management System
-            </h1>
-            <p className="text-muted-foreground text-[11px] leading-tight truncate">
-              Soekarno-Hatta International Airport
-            </p>
+          <div className="leading-tight hidden sm:block">
+            <h1 className="text-foreground text-sm font-bold leading-tight">APMS</h1>
+            <p className="text-muted-foreground text-[11px] leading-tight">Soekarno-Hatta</p>
           </div>
+        </div>
 
+        {/* Segmented workspace switch — replaces the old full-width tab
+            row. Thumb slides via transform only (no width/layout
+            animation), sized against the inner grid so it lands on exact
+            thirds regardless of the track's own padding. */}
+        <div className="flex-1 min-w-0 flex justify-center">
+          <div
+            role="tablist"
+            aria-label="Workspace"
+            className="w-full max-w-[190px] sm:max-w-xs rounded-lg bg-secondary/70 p-1"
+          >
+            <div className="relative grid grid-cols-3">
+              <span
+                aria-hidden
+                className="absolute inset-y-0 w-1/3 rounded-md bg-background shadow-sm transition-transform duration-200 ease-out"
+                style={{ transform: `translateX(${activeTabIndex * 100}%)` }}
+              />
+              {WORKSPACE_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  title={tab.label}
+                  aria-selected={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative z-10 px-1.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-md text-center truncate transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    activeTab === tab.id
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.shortLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
           <SearchBar
             sections={sections}
             onSelect={handleFeatureClick}
             selectedSection={selectedSection}
           />
-        </div>
 
-        <div className="flex items-center gap-3">
-          {/* Narrow viewports carry title + search + admin already, so the
+          {/* Narrow viewports carry brand + search + admin already, so the
               selector moves into the sidebar there instead of squeezing
               SearchBar out — see the sidebar-top fallback below. */}
           {activeTab === "pci" && !isNarrow && (
@@ -249,66 +297,47 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Workspace tabs */}
-      <div className="shrink-0 flex bg-card border-b border-border z-20" role="tablist">
-        {WORKSPACE_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            aria-selected={activeTab === tab.id}
-            role="tab"
-            className={`flex-1 min-w-0 px-3 py-2.5 text-[11px] sm:text-xs text-center leading-snug tracking-wide transition-colors border-r border-b-2 border-border last:border-r-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
-              activeTab === tab.id
-                ? "bg-secondary text-foreground font-bold border-b-primary"
-                : "bg-secondary/40 text-muted-foreground font-semibold border-b-transparent hover:bg-secondary hover:text-foreground"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Body: map + docked sidebar, or a placeholder for modules still in development */}
+      {/* Body: full-bleed map with a floating sidebar over it, or a
+          floating placeholder for modules still in development. */}
       {activeTab === "pci" ? (
-        <div className="relative flex-1 flex min-h-0">
-          {/* Map */}
-          <div className="relative flex-1 min-w-0">
-            {showPciData ? (
-              <>
-                <MapView
-                  key={selectedYear}
-                  selectedYear={selectedYear}
-                  onFeatureClick={handleFeatureClick}
-                  selectedSection={selectedSection}
-                  detailedSection={detailedSection}
-                  onExitDetails={handleExitDetails}
-                  activeBands={activeBands}
-                  onClearBands={handleClearBands}
-                />
+        <div className="absolute inset-0">
+          {/* Map fills the entire viewport now — the sidebar floats over
+              it instead of docking beside it and shrinking it. */}
+          {showPciData ? (
+            <>
+              <MapView
+                key={selectedYear}
+                selectedYear={selectedYear}
+                onFeatureClick={handleFeatureClick}
+                selectedSection={selectedSection}
+                detailedSection={detailedSection}
+                onExitDetails={handleExitDetails}
+                activeBands={activeBands}
+                onClearBands={handleClearBands}
+              />
 
-                {/* Attribution overlay (sits on imagery, independent of app theme) */}
-                <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-                  <div className="flex justify-end px-3 pb-1">
-                    <p className="text-[11px] text-white/80 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.7)]">
-                      Airport Pavement Management System
-                    </p>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-background">
-                <div className="text-center space-y-3 max-w-sm px-6">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <Construction size={20} className="text-primary" />
-                  </div>
-                  <p className="text-foreground font-medium">{selectedYear} PCI Survey</p>
-                  <p className="text-muted-foreground text-sm">
-                    This Feature Is Closed Due To WIP
+              {/* Attribution overlay (sits on imagery, independent of app theme) */}
+              <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+                <div className="flex justify-end px-3 pb-1">
+                  <p className="text-[11px] text-white/80 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.7)]">
+                    Airport Pavement Management System
                   </p>
                 </div>
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-background">
+              <div className="text-center space-y-3 max-w-sm px-6">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <Construction size={20} className="text-primary" />
+                </div>
+                <p className="text-foreground font-medium">{selectedYear} PCI Survey</p>
+                <p className="text-muted-foreground text-sm">
+                  This Feature Is Closed Due To WIP
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Sidebar collapse toggle */}
           <button
@@ -316,27 +345,32 @@ export default function Home() {
             className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center w-6 h-12 bg-primary text-primary-foreground shadow-md hover:bg-primary/90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-primary ${
               toggleAtLeftEdge ? "rounded-r-md" : "rounded-l-md"
             }`}
-            style={toggleAtLeftEdge ? { left: 0 } : { right: sidebarCollapsed ? 0 : sidebarWidth }}
+            style={
+              toggleAtLeftEdge
+                ? { left: PANEL_INSET }
+                : { right: sidebarCollapsed ? PANEL_INSET : sidebarWidth + PANEL_INSET }
+            }
             title={sidebarCollapsed ? "Show panel" : "Hide panel"}
             aria-label={sidebarCollapsed ? "Show panel" : "Hide panel"}
           >
             {sidebarCollapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
           </button>
 
-          {/* Docked sidebar. No width transition: animating this width via
-              flex-basis gets the flex layout stuck at the starting value
-              instead of settling at the target — verified with both the
-              mobile full-width open and the desktop 320->520 table-view
-              resize (same widths, no transition, both render correctly).
-              Width changes snap instead. */}
+          {/* Floating sidebar. Collapse slides it off-screen via transform
+              (not width) — the old docked layout had to snap its width
+              instead of transitioning because animating flex-basis gets
+              stuck near 0; that constraint doesn't apply to an absolutely
+              positioned panel, so the slide can transition smoothly here. */}
           <aside
-            className="relative shrink-0 bg-card border-l border-border overflow-hidden"
-            style={{ width: sidebarCollapsed ? 0 : sidebarWidth }}
+            className="glass-panel absolute top-20 bottom-3 z-20 rounded-xl overflow-hidden transition-transform duration-300 ease-out"
+            style={{
+              right: PANEL_INSET,
+              left: isNarrow ? PANEL_INSET : undefined,
+              width: isNarrow ? undefined : sidebarWidth,
+              transform: sidebarCollapsed ? "translateX(calc(100% + 12px))" : "translateX(0)",
+            }}
           >
-            <div
-              className="h-full overflow-y-auto custom-scrollbar pb-[env(safe-area-inset-bottom)]"
-              style={{ width: sidebarWidth }}
-            >
+            <div className="h-full overflow-y-auto custom-scrollbar pb-[env(safe-area-inset-bottom)]">
               {/* Narrow-viewport fallback for the year selector — rendered
                   above the swappable panels below so it still survives
                   section selection and the table view. */}
@@ -383,7 +417,7 @@ export default function Home() {
           </aside>
         </div>
       ) : (
-        <div className="relative flex-1 flex items-center justify-center min-h-0 bg-background">
+        <div className="absolute inset-0 flex items-center justify-center bg-background">
           <div className="text-center space-y-3 max-w-sm px-6">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
               <Construction size={20} className="text-primary" />
