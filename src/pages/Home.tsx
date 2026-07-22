@@ -360,9 +360,13 @@ export default function Home() {
               (not width) — the old docked layout had to snap its width
               instead of transitioning because animating flex-basis gets
               stuck near 0; that constraint doesn't apply to an absolutely
-              positioned panel, so the slide can transition smoothly here. */}
+              positioned panel, so the slide can transition smoothly here.
+              The column itself is unstyled — it's a positioning shell only;
+              each state below carries its own glass treatment, since the
+              overview state renders three independent floating cards while
+              detail/table render as one sheet. */}
           <aside
-            className="glass-panel absolute top-20 bottom-3 z-20 rounded-xl overflow-hidden transition-transform duration-300 ease-out"
+            className="absolute top-20 bottom-3 z-20 transition-transform duration-300 ease-out"
             style={{
               right: PANEL_INSET,
               left: isNarrow ? PANEL_INSET : undefined,
@@ -370,47 +374,66 @@ export default function Home() {
               transform: sidebarCollapsed ? "translateX(calc(100% + 12px))" : "translateX(0)",
             }}
           >
-            <div className="h-full overflow-y-auto custom-scrollbar pb-[env(safe-area-inset-bottom)]">
+            <div className="h-full overflow-y-auto custom-scrollbar pb-[env(safe-area-inset-bottom)] flex flex-col gap-3">
               {/* Narrow-viewport fallback for the year selector — rendered
                   above the swappable panels below so it still survives
                   section selection and the table view. */}
               {isNarrow && (
-                <div className="px-5 py-3 border-b border-border">
+                <div className="glass-panel rounded-xl px-5 py-3 shrink-0">
                   <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
                 </div>
               )}
 
               {showTable && showPciData ? (
-                <SectionsTable
-                  sections={sections}
-                  activeBands={activeBands}
-                  onClearBands={handleClearBands}
-                  selectedSection={selectedSection}
-                  onSelect={handleFeatureClick}
-                  onClose={() => setShowTable(false)}
-                />
+                <div className="glass-panel rounded-xl overflow-y-auto custom-scrollbar flex-1 min-h-0">
+                  <SectionsTable
+                    sections={sections}
+                    activeBands={activeBands}
+                    onClearBands={handleClearBands}
+                    selectedSection={selectedSection}
+                    onSelect={handleFeatureClick}
+                    onClose={() => setShowTable(false)}
+                  />
+                </div>
               ) : selectedSection && showPciData ? (
-                <DetailPanel
-                  section={selectedSection}
-                  selectedYear={selectedYear}
-                  onClose={handleClosePanel}
-                  onViewDetails={handleToggleDetails}
-                  isDetailedView={detailedSection === selectedSection.Section}
-                />
+                <div className="glass-panel rounded-xl overflow-hidden flex-1 min-h-0">
+                  <DetailPanel
+                    section={selectedSection}
+                    selectedYear={selectedYear}
+                    onClose={handleClosePanel}
+                    onViewDetails={handleToggleDetails}
+                    isDetailedView={detailedSection === selectedSection.Section}
+                  />
+                </div>
               ) : (
                 <>
                   {showPciData && (
-                    <StatsBar sections={sections} onOpenTable={() => setShowTable(true)} />
+                    <div
+                      className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
+                      style={{ animationDelay: "0ms" }}
+                    >
+                      <StatsBar sections={sections} onOpenTable={() => setShowTable(true)} />
+                    </div>
                   )}
                   {showPciData && (
-                    <NeedsAttention sections={sections} onSelect={handleFeatureClick} />
+                    <div
+                      className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
+                      style={{ animationDelay: "60ms" }}
+                    >
+                      <NeedsAttention sections={sections} onSelect={handleFeatureClick} />
+                    </div>
                   )}
-                  <Legend
-                    activeBands={activeBands}
-                    onToggleBand={handleToggleBand}
-                    onClearBands={handleClearBands}
-                    bandCounts={bandCounts}
-                  />
+                  <div
+                    className="glass-panel rounded-xl overflow-hidden shrink-0 animate-card-in"
+                    style={{ animationDelay: "120ms" }}
+                  >
+                    <Legend
+                      activeBands={activeBands}
+                      onToggleBand={handleToggleBand}
+                      onClearBands={handleClearBands}
+                      bandCounts={bandCounts}
+                    />
+                  </div>
                 </>
               )}
             </div>

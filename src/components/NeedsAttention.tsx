@@ -24,7 +24,7 @@ export default function NeedsAttention({ sections, onSelect }: NeedsAttentionPro
 
   if (flagged.length === 0) {
     return (
-      <div className="px-5 py-5 border-b border-border">
+      <div className="px-5 py-5">
         <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
           <AlertTriangle size={14} className="text-muted-foreground" />
           Needs Attention
@@ -40,7 +40,7 @@ export default function NeedsAttention({ sections, onSelect }: NeedsAttentionPro
   const remaining = flagged.length - shown.length;
 
   return (
-    <div className="px-5 py-5 border-b border-border">
+    <div className="px-5 py-5">
       <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
         <AlertTriangle size={14} className="text-destructive" />
         Needs Attention

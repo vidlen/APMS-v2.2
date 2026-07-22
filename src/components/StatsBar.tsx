@@ -27,7 +27,7 @@ export default function StatsBar({ sections, onOpenTable }: StatsBarProps) {
   ];
 
   return (
-    <div className="px-5 py-5 border-b border-border">
+    <div className="px-5 py-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold text-foreground">Overview</h2>
         <button
@@ -39,18 +39,17 @@ export default function StatsBar({ sections, onOpenTable }: StatsBarProps) {
           Table
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      {/* Hairline-divided cells rather than three separately boxed tiles —
+          one grouped stat row reads calmer than three nested cards. */}
+      <div className="grid grid-cols-3 divide-x divide-border rounded-md border border-border">
         {items.map((item, i) => (
-          <div
-            key={i}
-            className="flex flex-col items-center text-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-3"
-          >
+          <div key={i} className="flex flex-col items-center text-center gap-1 px-2 py-3">
             <div
-              className={`text-foreground text-sm font-bold tabular-nums leading-tight ${item.mono ? "font-mono" : ""}`}
+              className={`text-foreground text-base font-bold tabular-nums leading-tight ${item.mono ? "font-mono" : ""}`}
             >
               {item.value}
             </div>
-            <div className="text-muted-foreground text-[11px] leading-tight">{item.label}</div>
+            <div className="text-muted-foreground text-[10px] leading-tight">{item.label}</div>
           </div>
         ))}
       </div>
