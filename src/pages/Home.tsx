@@ -10,6 +10,7 @@ import StatsBar from "@/components/StatsBar";
 import NeedsAttention from "@/components/NeedsAttention";
 import SectionsTable from "@/components/SectionsTable";
 import AdminHeaderControl from "@/components/admin/AdminHeaderControl";
+import ThemeToggle from "@/components/ThemeToggle";
 import { usePavementData } from "@/hooks/usePavementData";
 import { countByCondition, type SectionData } from "@/lib/pci-utils";
 import type { SurveyYear } from "@/lib/survey-years";
@@ -243,6 +244,7 @@ export default function Home() {
             <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
           )}
 
+          <ThemeToggle />
           <AdminHeaderControl />
         </div>
       </header>
