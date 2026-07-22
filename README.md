@@ -1,73 +1,40 @@
-# React + TypeScript + Vite
+# APMS v2.2 — Airport Pavement Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Pavement condition (PCI) dashboard for Soekarno-Hatta International Airport. This is a UI redesign of [APMS-V1.5](https://github.com/vidlen/APMS-V1.5) — the map, GeoJSON/JSON datasets, PCI band colors, and all admin/data logic are unchanged; only presentation was rebuilt.
 
-Currently, two official plugins are available:
+## Design: "Glass Cockpit"
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The satellite map fills the entire viewport; every control floats over it as a translucent, blurred glass panel — a top bar, a right-hand column of cards (desktop) or a bottom drawer (narrow viewports), and map chrome (zoom, tooltip, back button, filter pill). Light and dark themes are both first-class, toggled via the header.
 
-## React Compiler
+Built entirely from dependencies already present in the original scaffold — `next-themes`, `vaul`, `cmdk`/`ui/command`, `ui/collapsible`, `ui/drawer` — no new runtime dependencies were added for the redesign.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+Vite + React 19 + TypeScript, Tailwind CSS 3 + shadcn/ui, OpenLayers (satellite map + GeoJSON layers).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # dev server
+npm run build    # type-check + production build
+npm run lint      # eslint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+  components/         PCI tab UI: MapView, DetailPanel, SectionsTable,
+                       StatsBar, NeedsAttention, Legend, SearchBar,
+                       SurveyYearSelector, ThemeToggle
+  components/admin/   Admin login + data editing panels
+  components/ui/       shadcn/ui primitives
+  lib/                 PCI/PCN classification, data store, GeoJSON I/O, auth
+  pages/               Home (PCI dashboard) and Admin
+public/data/           Section/sample-unit GeoJSON per survey year — untouched
+```
+
+## What changed vs. V1.5
+
+Full-bleed map with floating glass chrome replacing the docked sidebar layout; a centered segmented workspace switch replacing the full-width tab row; the floating column split into independent glass cards (Overview / Needs Attention / Legend) with a staggered entrance; a bottom drawer with snap points for narrow viewports; dual light/dark theming; Geist/Geist Mono typography. See the commit history for the phase-by-phase breakdown.

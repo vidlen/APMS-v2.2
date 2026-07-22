@@ -201,7 +201,7 @@ export default function Home() {
   if (error) {
     return (
       <div className="w-full h-screen h-dvh bg-background flex items-center justify-center px-6">
-        <div className="glass-panel rounded-2xl text-center space-y-3 max-w-md px-8 py-8">
+        <div className="glass-panel rounded-2xl text-center space-y-3 max-w-md px-8 py-8 animate-card-in">
           <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
             <span className="text-destructive text-xl">!</span>
           </div>
@@ -248,7 +248,7 @@ export default function Home() {
   // the desktop floating column and the narrow bottom drawer below.
   const sidebarBody =
     showTable && showPciData ? (
-      <div className="glass-panel rounded-xl overflow-y-auto custom-scrollbar flex-1 min-h-0">
+      <div className="glass-panel rounded-xl overflow-y-auto custom-scrollbar flex-1 min-h-0 animate-card-in">
         <SectionsTable
           sections={sections}
           activeBands={activeBands}
@@ -259,7 +259,7 @@ export default function Home() {
         />
       </div>
     ) : selectedSection && showPciData ? (
-      <div className="glass-panel rounded-xl overflow-hidden flex-1 min-h-0">
+      <div className="glass-panel rounded-xl overflow-hidden flex-1 min-h-0 animate-card-in">
         <DetailPanel
           section={selectedSection}
           selectedYear={selectedYear}
@@ -338,9 +338,9 @@ export default function Home() {
         <div
           role="tablist"
           aria-label="Workspace"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-64 rounded-lg bg-secondary/70 p-1"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-64 h-11 rounded-lg bg-secondary/70 p-1"
         >
-          <div className="relative grid grid-cols-3">
+          <div className="relative grid grid-cols-3 h-full">
             <span
               aria-hidden
               className="absolute inset-y-0 w-1/3 rounded-md bg-background shadow-sm transition-transform duration-200 ease-out"
@@ -355,7 +355,7 @@ export default function Home() {
                   title={tab.label}
                   aria-selected={activeTab === tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-10 flex items-center justify-center gap-1.5 px-1.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  className={`relative z-10 flex items-center justify-center gap-1.5 h-full text-[11px] sm:text-xs font-semibold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                     activeTab === tab.id
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -415,7 +415,7 @@ export default function Home() {
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-background">
-              <div className="glass-panel rounded-2xl text-center space-y-3 max-w-sm px-8 py-8">
+              <div className="glass-panel rounded-2xl text-center space-y-3 max-w-sm px-8 py-8 animate-card-in">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                   <Construction size={20} className="text-primary" />
                 </div>
@@ -435,7 +435,7 @@ export default function Home() {
               {sidebarCollapsed && (
                 <button
                   onClick={() => setSidebarCollapsed(false)}
-                  className="glass-panel absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="glass-panel absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 h-11 rounded-full text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <ChevronUp size={14} />
                   Sections
@@ -469,7 +469,7 @@ export default function Home() {
                       onClick={() => setSidebarCollapsed(true)}
                       aria-label="Hide panel"
                       title="Hide panel"
-                      className="w-8 h-8 rounded-md bg-secondary hover:bg-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      className="w-11 h-11 rounded-md bg-secondary hover:bg-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       <ChevronDown size={14} />
                     </button>
