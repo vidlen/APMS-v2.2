@@ -228,66 +228,71 @@ export default function Home() {
     <div className="relative w-full h-screen h-dvh bg-background overflow-hidden">
       {/* Floating top bar — brand, workspace switch, and global controls in
           one glass bar over the map instead of a stacked header + tab row. */}
-      <header className="glass-panel absolute top-3 left-3 right-3 z-30 flex items-center gap-3 h-14 rounded-xl px-3 pt-[env(safe-area-inset-top)]">
-        <div
-          className="flex items-center gap-2.5 shrink-0"
-          title="Airport Pavement Management System — Soekarno-Hatta International Airport"
-        >
-          <div className="w-9 h-9 rounded-md bg-primary flex items-center justify-center shrink-0">
-            <Plane size={17} className="text-primary-foreground" />
-          </div>
-          <div className="leading-tight hidden sm:block">
-            <h1 className="text-foreground text-sm font-bold leading-tight">APMS</h1>
-            <p className="text-muted-foreground text-[11px] leading-tight">Soekarno-Hatta</p>
-          </div>
-        </div>
-
-        {/* Segmented workspace switch — replaces the old full-width tab
-            row. Thumb slides via transform only (no width/layout
-            animation), sized against the inner grid so it lands on exact
-            thirds regardless of the track's own padding. */}
-        <div className="flex-1 min-w-0 flex justify-center">
+      <header className="glass-panel absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-3 h-14 rounded-xl px-3 pt-[env(safe-area-inset-top)]">
+        <div className="flex items-center gap-3 min-w-0 shrink-0">
           <div
-            role="tablist"
-            aria-label="Workspace"
-            className="w-full max-w-[190px] sm:max-w-xs rounded-lg bg-secondary/70 p-1"
+            className="flex items-center gap-2.5 shrink-0"
+            title="Airport Pavement Management System — Soekarno-Hatta International Airport"
           >
-            <div className="relative grid grid-cols-3">
-              <span
-                aria-hidden
-                className="absolute inset-y-0 w-1/3 rounded-md bg-background shadow-sm transition-transform duration-200 ease-out"
-                style={{ transform: `translateX(${activeTabIndex * 100}%)` }}
-              />
-              {WORKSPACE_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  title={tab.label}
-                  aria-selected={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-10 px-1.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-md text-center truncate transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                    activeTab === tab.id
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {tab.shortLabel}
-                </button>
-              ))}
+            <div className="w-9 h-9 rounded-md bg-primary flex items-center justify-center shrink-0">
+              <Plane size={17} className="text-primary-foreground" />
+            </div>
+            <div className="leading-tight hidden sm:block">
+              <h1 className="text-foreground text-sm font-bold leading-tight">APMS</h1>
+              <p className="text-muted-foreground text-[11px] leading-tight">Soekarno-Hatta</p>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
           <SearchBar
             sections={sections}
             onSelect={handleFeatureClick}
             selectedSection={selectedSection}
           />
+        </div>
 
+        {/* Segmented workspace switch — replaces the old full-width tab
+            row. Positioned absolutely (not flex-centered between the two
+            side groups) so it lands on the bar's true midpoint regardless
+            of how wide the left/right groups are — a flex-1 middle column
+            would center in the *leftover* space instead, which drifts off
+            the visual center whenever the two sides are asymmetric like
+            they are here. Thumb slides via transform only, sized against
+            the inner grid so it lands on exact thirds regardless of the
+            track's own padding. */}
+        <div
+          role="tablist"
+          aria-label="Workspace"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[190px] sm:w-64 rounded-lg bg-secondary/70 p-1"
+        >
+          <div className="relative grid grid-cols-3">
+            <span
+              aria-hidden
+              className="absolute inset-y-0 w-1/3 rounded-md bg-background shadow-sm transition-transform duration-200 ease-out"
+              style={{ transform: `translateX(${activeTabIndex * 100}%)` }}
+            />
+            {WORKSPACE_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                title={tab.label}
+                aria-selected={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative z-10 px-1.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-md text-center truncate transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  activeTab === tab.id
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.shortLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
           {/* Narrow viewports carry brand + search + admin already, so the
               selector moves into the sidebar there instead of squeezing
-              SearchBar out — see the sidebar-top fallback below. */}
+              the bar out — see the sidebar-top fallback below. */}
           {activeTab === "pci" && !isNarrow && (
             <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
           )}

@@ -163,8 +163,10 @@
   border-color: hsl(var(--primary) / 0.4) !important;
 }
 
+/* 80px clears the floating top bar (12px inset + 56px bar height + 12px
+   gap) — the same offset the floating sidebar uses below the bar. */
 .ol-zoom {
-  top: 12px !important;
+  top: 80px !important;
   left: 12px !important;
 }
 
