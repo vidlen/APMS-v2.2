@@ -31,7 +31,7 @@ export default function SearchBar({ sections, onSelect, selectedSection }: Searc
   };
 
   return (
-    <div className="relative w-full max-w-[180px] sm:max-w-xs">
+    <div className="relative w-full max-w-[140px] lg:max-w-xs">
       <div
         className={`flex items-center gap-2.5 bg-secondary border border-border rounded-md h-9 px-3.5 transition-colors ${
           focused ? "border-primary/50 ring-1 ring-primary/30 bg-card" : ""

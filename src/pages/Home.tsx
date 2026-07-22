@@ -319,11 +319,18 @@ export default function Home() {
             </div>
           </div>
 
-          <SearchBar
-            sections={sections}
-            onSelect={handleFeatureClick}
-            selectedSection={selectedSection}
-          />
+          {/* Narrow viewports carry brand + centered tabs + admin already —
+              a search input wide enough to be usable would overlap the
+              centered tabs (verified: even shrunk to its narrowest useful
+              width, ~50px was all that was left). It moves into the
+              drawer's own header instead, mirroring the year selector. */}
+          {!isNarrow && (
+            <SearchBar
+              sections={sections}
+              onSelect={handleFeatureClick}
+              selectedSection={selectedSection}
+            />
+          )}
         </div>
 
         {/* Segmented workspace switch — replaces the old full-width tab
@@ -338,7 +345,7 @@ export default function Home() {
         <div
           role="tablist"
           aria-label="Workspace"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-64 h-11 rounded-lg bg-secondary/70 p-1"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 lg:w-64 h-11 rounded-lg bg-secondary/70 p-1"
         >
           <div className="relative grid grid-cols-3 h-full">
             <span
@@ -361,11 +368,16 @@ export default function Home() {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {/* Icons below sm (top bar is tightest there), text label
-                      at sm+ — a pure CSS breakpoint, not tied to the isNarrow
-                      JS state, so it can't drift stale after a resize. */}
-                  <Icon size={14} className="sm:hidden shrink-0" />
-                  <span className="hidden sm:inline truncate">{tab.shortLabel}</span>
+                  {/* Icons below lg, text label at lg+ — a pure CSS
+                      breakpoint, not tied to the isNarrow JS state, so it
+                      can't drift stale after a resize. The compact/icon
+                      treatment runs through the whole sub-1024px range
+                      (not just <640px) because the search bar and side
+                      controls sharing this bar leave the centered tabs no
+                      room to widen out any earlier — verified at 768px,
+                      where a sm-level bump collided with both neighbors. */}
+                  <Icon size={14} className="lg:hidden shrink-0" />
+                  <span className="hidden lg:inline truncate">{tab.shortLabel}</span>
                 </button>
               );
             })}
@@ -461,18 +473,27 @@ export default function Home() {
                     </DrawerDescription>
                   </DrawerHeader>
 
-                  <div className="flex items-center gap-2 px-4 pb-2 shrink-0">
-                    <div className="flex-1">
-                      <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
+                  <div className="flex flex-col gap-2 px-4 pb-2 shrink-0">
+                    {/* Search moved here from the top bar — see the note by
+                        its removal above. */}
+                    <SearchBar
+                      sections={sections}
+                      onSelect={handleFeatureClick}
+                      selectedSection={selectedSection}
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <SurveyYearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
+                      </div>
+                      <button
+                        onClick={() => setSidebarCollapsed(true)}
+                        aria-label="Hide panel"
+                        title="Hide panel"
+                        className="w-11 h-11 rounded-md bg-secondary hover:bg-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setSidebarCollapsed(true)}
-                      aria-label="Hide panel"
-                      title="Hide panel"
-                      className="w-11 h-11 rounded-md bg-secondary hover:bg-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
                   </div>
 
                   <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-[env(safe-area-inset-bottom)] flex flex-col gap-3">
