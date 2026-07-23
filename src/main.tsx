@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { ThemeProvider } from 'next-themes'
+import { Agentation } from 'agentation'
 import './index.css'
 import App from './App.tsx'
 import { DataProvider } from '@/lib/data-store'
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
           </DataProvider>
         </AuthProvider>
       </BrowserRouter>
+      {import.meta.env.DEV && <Agentation />}
     </ThemeProvider>
   </StrictMode>,
 )
