@@ -348,7 +348,7 @@ export default function Home() {
     <div className="relative w-full h-screen h-dvh bg-background overflow-hidden print:h-auto print:overflow-visible">
       {/* Floating top bar — brand, workspace switch, and global controls in
           one glass bar over the map instead of a stacked header + tab row. */}
-      <header className="glass-panel absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-3 h-14 rounded-xl px-3 pt-[env(safe-area-inset-top)] print:hidden">
+      <header className="glass-panel absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-3 h-14 rounded-xl px-3 pt-[env(safe-area-inset-top)] print:hidden no-print">
         <div className="flex items-center gap-3 min-w-0 shrink-0">
           <div
             className="flex items-center gap-2.5 shrink-0"
@@ -460,7 +460,7 @@ export default function Home() {
       {/* Body: full-bleed map with a floating sidebar over it, or a
           floating placeholder for modules still in development. */}
       {activeTab === "pci" ? (
-        <div className="absolute inset-0 print:hidden">
+        <div className="absolute inset-0 print:hidden no-print">
           {/* Map fills the entire viewport now — the sidebar floats over
               it instead of docking beside it and shrinking it. */}
           {showPciData ? (
@@ -599,7 +599,7 @@ export default function Home() {
           )}
         </div>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-background print:hidden">
+        <div className="absolute inset-0 flex items-center justify-center bg-background print:hidden no-print">
           <div className="glass-panel rounded-2xl text-center space-y-3 max-w-sm px-8 py-8">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
               <Construction size={20} className="text-primary" />

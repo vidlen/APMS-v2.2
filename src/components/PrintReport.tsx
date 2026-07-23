@@ -174,7 +174,7 @@ export default function PrintReport({ sections, selectedYear, selection, mode, u
 
   if (mode === "detailed") {
     return (
-      <div className="hidden print:block text-black bg-white p-8">
+      <div className="hidden print:block print-only text-black bg-white p-8">
         <ReportHeader selectedYear={selectedYear} subtitle="Section Detail Report" />
         <p className="text-xs mb-4">{total} of {sections.length} sections included</p>
         {rows
@@ -189,7 +189,7 @@ export default function PrintReport({ sections, selectedYear, selection, mode, u
   }
 
   return (
-    <div className="hidden print:block text-black bg-white p-8">
+    <div className="hidden print:block print-only text-black bg-white p-8">
       <ReportHeader selectedYear={selectedYear} subtitle="Pavement Condition Index Report" />
 
       <p className="text-xs mb-3">{total} of {sections.length} sections included</p>

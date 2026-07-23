@@ -259,3 +259,33 @@
   background: hsl(220 13% 9% / 0.9);
   border-color: rgb(255 255 255 / 0.1);
 }
+
+/* Print isolation — plain CSS with !important rather than relying on
+   Tailwind's print:hidden/print:block utility ordering, which a print of
+   the live app showed isn't reliably winning the cascade (the map's
+   backdrop-blur glass panels were rasterizing into the printed page
+   instead of being hidden). .no-print/.print-only are applied alongside
+   the Tailwind print: utilities, not instead of them, as a second,
+   independent guarantee. The map hover tooltip is appended straight to
+   <body> by MapView (an OpenLayers overlay, outside the React tree this
+   page's other print rules cover) so it needs its own line here. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .map-tooltip {
+    display: none !important;
+  }
+  /* Radix dialogs (the print picker itself, the admin login dialog, ...)
+     portal straight to document.body, outside the tree .no-print covers.
+     The print picker calls window.print() right after closing itself, but
+     its ~200ms close animation is still visible when that fires, so this
+     needs to be unconditional rather than relying on open/closed state. */
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-content"] {
+    display: none !important;
+  }
+}
