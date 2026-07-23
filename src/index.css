@@ -270,6 +270,20 @@
    <body> by MapView (an OpenLayers overlay, outside the React tree this
    page's other print rules cover) so it needs its own line here. */
 @media print {
+  /* body/#root are pinned to 100vh/100dvh with overflow:hidden for the
+     app's normal one-screen layout — unconditional, so it also clips print
+     to a single page no matter how tall the report actually is (this is
+     why a 72-row report was landing as exactly one cut-off sheet). #root's
+     own child (the app's root div, which already carries a print:h-auto/
+     print:overflow-visible pair of its own) is covered here too so the fix
+     doesn't depend on Tailwind's print: variant winning the cascade. */
+  html,
+  body,
+  #root,
+  #root > div {
+    height: auto !important;
+    overflow: visible !important;
+  }
   .no-print {
     display: none !important;
   }
