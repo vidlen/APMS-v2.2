@@ -22,14 +22,16 @@ import StatsBar from "@/components/StatsBar";
 import NeedsAttention from "@/components/NeedsAttention";
 import SectionsTable from "@/components/SectionsTable";
 import PrintReport from "@/components/PrintReport";
+import PrintOptionsDialog from "@/components/PrintOptionsDialog";
 import AdminHeaderControl from "@/components/admin/AdminHeaderControl";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePavementData } from "@/hooks/usePavementData";
-import { countByCondition, type SectionData } from "@/lib/pci-utils";
+import { countByCondition, getPCICategory, parsePCIValue, type SectionData } from "@/lib/pci-utils";
 import type { SurveyYear } from "@/lib/survey-years";
-import { useData } from "@/lib/data-store";
+import { useData, useEffectiveYearData } from "@/lib/data-store";
+import type { PrintMode } from "@/components/PrintReport";
 
 const NARROW_BREAKPOINT = 640;
 const MIN_LOADING_SCREEN_MS = 2000;
@@ -73,6 +75,11 @@ export default function Home() {
   const [selectedYear, setSelectedYear] = useState<SurveyYear>("2025");
   const { sections, loading, error } = usePavementData(selectedYear);
   const { years } = useData();
+  // Same year data MapView already loads for the sample-unit layer — the
+  // module-level fetch cache in data-store means this second call costs
+  // nothing extra once that's resolved. Needed here for the print report's
+  // detailed (per-runway sample-unit) mode.
+  const { unitsBySection } = useEffectiveYearData(selectedYear);
   const [isNarrow, setIsNarrow] = useState(isNarrowViewport);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const [selectedSection, setSelectedSection] = useState<SectionData | null>(null);
@@ -84,6 +91,40 @@ export default function Home() {
   const [activeBands, setActiveBands] = useState<Set<string>>(new Set());
   const [showTable, setShowTable] = useState(false);
   const bandCounts = useMemo(() => countByCondition(sections), [sections]);
+
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [printSelection, setPrintSelection] = useState<Set<string>>(new Set());
+  const [printMode, setPrintMode] = useState<PrintMode>("summary");
+  const [pendingPrint, setPendingPrint] = useState(false);
+
+  // Opening the picker defaults to whatever the legend filter is already
+  // narrowed to (or everything, if it isn't) — same starting point the old
+  // one-click report used, just adjustable from there instead of fixed.
+  const printDefaultSelection = useMemo(() => {
+    if (activeBands.size === 0) return new Set(sections.map((s) => s.Section));
+    return new Set(
+      sections
+        .filter((s) => activeBands.has(getPCICategory(parsePCIValue(s["PCI Rating"])).label))
+        .map((s) => s.Section)
+    );
+  }, [sections, activeBands]);
+
+  const handlePrint = useCallback((selection: Set<string>, mode: PrintMode) => {
+    setPrintSelection(selection);
+    setPrintMode(mode);
+    setPrintDialogOpen(false);
+    setPendingPrint(true);
+  }, []);
+
+  // Deferred to an effect so window.print() only fires once React has
+  // committed the new selection/mode to the (always-mounted, screen-hidden)
+  // PrintReport — calling it inline after setState would still see the
+  // previous render's DOM.
+  useEffect(() => {
+    if (!pendingPrint) return;
+    window.print();
+    setPendingPrint(false);
+  }, [pendingPrint]);
 
   // Keep the branded splash on screen for a minimum window so it doesn't
   // just flash by when data loads quickly off localhost.
@@ -403,7 +444,7 @@ export default function Home() {
               variant="outline"
               size="icon"
               className="shrink-0"
-              onClick={() => window.print()}
+              onClick={() => setPrintDialogOpen(true)}
               aria-label="Print PCI report"
               title="Print PCI report"
             >
@@ -573,7 +614,20 @@ export default function Home() {
         </div>
       )}
 
-      <PrintReport sections={sections} selectedYear={selectedYear} activeBands={activeBands} />
+      <PrintReport
+        sections={sections}
+        selectedYear={selectedYear}
+        selection={printSelection}
+        mode={printMode}
+        unitsBySection={unitsBySection}
+      />
+      <PrintOptionsDialog
+        open={printDialogOpen}
+        onOpenChange={setPrintDialogOpen}
+        sections={sections}
+        initialSelection={printDefaultSelection}
+        onPrint={handlePrint}
+      />
     </div>
   );
 }
